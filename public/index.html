@@ -5,123 +5,301 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>वोटर लिस्ट सर्च - वार्ड 24</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
+    }
+
+    /* Smooth animation */
+    * {
+      transition: all 0.2s ease;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+
+      header {
+        padding: 14px;
+      }
+
+      header h1 {
+        font-size: 17px;
+        line-height: 24px;
+      }
+
+      header p {
+        font-size: 10px;
+      }
+
+      main {
+        padding: 12px;
+      }
+
+      .search-wrapper {
+        flex-direction: column;
+      }
+
+      .search-wrapper input,
+      .search-wrapper button {
+        width: 100%;
+      }
+
+      .search-wrapper button {
+        padding: 12px;
+      }
+
+      .voter-card {
+        padding: 14px;
+      }
+
+      .voter-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .voter-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .voter-id {
+        font-size: 10px;
+        width: 100%;
+        word-break: break-all;
+      }
+
+      footer {
+        font-size: 10px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
+  <!-- HEADER -->
   <header class="bg-indigo-600 text-white shadow-md p-4 text-center sticky top-0 z-50">
-    <h1 class="text-xl font-bold tracking-wide">🗳️ वोटर लिस्ट सर्च (वार्ड 24)</h1>
-    <p class="text-xs text-indigo-200 mt-1">Developed by: Akash Maurya</p>
+    <h1 class="text-xl font-bold tracking-wide">
+      🗳️ वोटर लिस्ट सर्च (वार्ड 24)
+    </h1>
+
+    <p class="text-xs text-indigo-200 mt-1">
+      Developed by: Akash Maurya
+    </p>
   </header>
 
+  <!-- MAIN -->
   <main class="flex-grow p-4 max-w-md mx-auto w-full">
 
+    <!-- SEARCH BOX -->
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-      <label class="block text-gray-700 font-semibold mb-2 text-sm">वोटर आईडी या मकान संख्या डालें:</label>
-      <div class="flex gap-2">
+
+      <label class="block text-gray-700 font-semibold mb-2 text-sm">
+        वोटर आईडी या मकान संख्या डालें:
+      </label>
+
+      <div class="flex gap-2 search-wrapper">
+
         <input type="text" id="searchInput" placeholder="उदा: ZYG1371053, RJ/12/096/348973 या 4"
           class="flex-grow border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
+
         <button onclick="performSearch()"
-          class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-medium text-sm hover:bg-indigo-700 transition active:scale-95">
+          class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-medium text-sm hover:bg-indigo-700 active:scale-95">
           सर्च
         </button>
+
       </div>
-      <p class="text-[11px] text-gray-400 mt-2">💡 नोट: RJ वाले वोटर आईडी में स्लैश ( / ) जरूर लगाएं।</p>
+
+      <p class="text-[11px] text-gray-400 mt-2">
+        💡 नोट: RJ वाले वोटर आईडी में स्लैश ( / ) जरूर लगाएं।
+      </p>
+
     </div>
 
+    <!-- LOADING -->
     <div id="loading" class="hidden text-center my-8">
+
       <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"
-        role="status"></div>
-      <p class="text-gray-500 text-xs mt-2">डेटाबेस से खोजा जा रहा है...</p>
+        role="status">
+      </div>
+
+      <p class="text-gray-500 text-xs mt-2">
+        डेटाबेस से खोजा जा रहा है...
+      </p>
+
     </div>
 
-    <div id="resultsCount" class="text-sm font-semibold text-gray-600 mb-3 hidden"></div>
+    <!-- RESULTS COUNT -->
+    <div id="resultsCount" class="text-sm font-semibold text-gray-600 mb-3 hidden">
+    </div>
 
+    <!-- RESULTS -->
     <div id="resultsContainer" class="space-y-4">
     </div>
 
   </main>
 
+  <!-- FOOTER -->
   <footer class="bg-gray-100 border-t border-gray-200 p-3 text-center text-[11px] text-gray-500">
     &copy; 2026 AR Data & Web Solutions. All Rights Reserved.
   </footer>
 
+  <!-- SCRIPT -->
   <script>
+
     async function performSearch() {
+
       const query = document.getElementById("searchInput").value.trim();
+
       const container = document.getElementById("resultsContainer");
+
       const loading = document.getElementById("loading");
+
       const resultsCount = document.getElementById("resultsCount");
 
+      // Empty input
       if (!query) {
         alert("कृपया कुछ इनपुट टाइप करें भाई!");
         return;
       }
 
-      // UI रीसेट करें
+      // Reset UI
       container.innerHTML = "";
+
       resultsCount.classList.add("hidden");
+
       loading.classList.remove("hidden");
 
       try {
+
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+
         const data = await response.json();
+
         loading.classList.add("hidden");
 
+        // No data found
         if (data.error || !data.results || data.results.length === 0) {
+
           container.innerHTML = `
-                        <div class="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100 text-sm">
-                            ❌ कोई रिकॉर्ड नहीं मिला भाई। कृपया दोबारा चेक करें।
-                        </div>`;
+            <div class="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100 text-sm">
+              ❌ कोई रिकॉर्ड नहीं मिला भाई। कृपया दोबारा चेक करें।
+            </div>
+          `;
+
           return;
         }
 
+        // Show count
         resultsCount.innerText = `कुल परिणाम: ${data.results.length}`;
+
         resultsCount.classList.remove("hidden");
 
-        // मोबाइल फ्रेंडली रिस्पॉन्सिव टेबल/कार्ड्स बनाना
+        // Create cards
         data.results.forEach(voter => {
+
           const card = document.createElement("div");
-          // सिंटैक्स एरर फिक्स: यहाँ className का सही इस्तेमाल किया है
-          card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2";
+
+          card.className =
+            "bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2 voter-card";
+
           card.innerHTML = `
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-2">
-                            <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-md">SNo: ${voter.Serial_No || 'N/A'}</span>
-                            <span class="text-xs font-mono font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md">${voter.Voter_ID || 'N/A'}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div><p class="text-gray-400">नाम:</p><p class="font-bold text-gray-800 text-sm">${voter.Name || 'N/A'}</p></div>
-                            <div><p class="text-gray-400">संबंधी का नाम:</p><p class="font-medium text-gray-800">${voter.Relation_Name || 'N/A'}</p></div>
-                            <div class="mt-1"><p class="text-gray-400">मकान संख्या:</p><p class="font-bold text-indigo-600">${voter.House_No || 'N/A'}</p></div>
-                            <div class="mt-1"><p class="text-gray-400">वार्ड / भाग:</p><p class="font-medium text-gray-700">${voter.Ward || '24'} / ${voter.Bhag_Sankhya || '3'}</p></div>
-                        </div>
-                    `;
+
+            <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-2 voter-header">
+
+              <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-md">
+                SNo: ${voter.Serial_No || 'N/A'}
+              </span>
+
+              <span class="text-xs font-mono font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md voter-id">
+                ${voter.Voter_ID || 'N/A'}
+              </span>
+
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs voter-grid">
+
+              <div>
+                <p class="text-gray-400">
+                  नाम:
+                </p>
+
+                <p class="font-bold text-gray-800 text-sm">
+                  ${voter.Name || 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">
+                  संबंधी का नाम:
+                </p>
+
+                <p class="font-medium text-gray-800">
+                  ${voter.Relation_Name || 'N/A'}
+                </p>
+              </div>
+
+              <div class="mt-1">
+                <p class="text-gray-400">
+                  मकान संख्या:
+                </p>
+
+                <p class="font-bold text-indigo-600">
+                  ${voter.House_No || 'N/A'}
+                </p>
+              </div>
+
+              <div class="mt-1">
+                <p class="text-gray-400">
+                  वार्ड / भाग:
+                </p>
+
+                <p class="font-medium text-gray-700">
+                  ${voter.Ward || '24'} / ${voter.Bhag_Sankhya || '3'}
+                </p>
+              </div>
+
+            </div>
+
+          `;
+
           container.appendChild(card);
+
         });
 
-      } catch (err) {
+      }
+
+      catch (err) {
+
         loading.classList.add("hidden");
+
         container.innerHTML = `
-                    <div class="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100 text-sm">
-                        ⚠️ सर्वर से कनेक्ट करने में दिक्कत आई, कृपया 2 सेकंड बाद दोबारा सर्च करें।
-                    </div>`;
+          <div class="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100 text-sm">
+            ⚠️ सर्वर से कनेक्ट करने में दिक्कत आई, कृपया 2 सेकंड बाद दोबारा सर्च करें।
+          </div>
+        `;
       }
     }
 
-    // Enter की प्रेस करने पर भी सर्च हो जाए
-    document.getElementById("searchInput").addEventListener("keyup", function (event) {
-      if (event.key === "Enter") {
-        performSearch();
-      }
-    });
+    // Enter key search
+    document.getElementById("searchInput")
+      .addEventListener("keyup", function (event) {
+
+        if (event.key === "Enter") {
+          performSearch();
+        }
+
+      });
+
   </script>
+
 </body>
 
 </html>
